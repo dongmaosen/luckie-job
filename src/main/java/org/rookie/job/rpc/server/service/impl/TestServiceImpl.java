@@ -13,7 +13,7 @@ import org.rookie.job.rpc.server.service.ITestService;
 public class TestServiceImpl implements ITestService {
 
 	public String echo(String str) {
-		return str + "...";
+		return str + "......";
 	}
 
 }
