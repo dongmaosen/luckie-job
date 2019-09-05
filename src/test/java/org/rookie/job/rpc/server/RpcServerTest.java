@@ -1,4 +1,7 @@
 package org.rookie.job.rpc.server;
+
+import org.junit.Test;
+
 /**
  *
  *
@@ -8,6 +11,12 @@ package org.rookie.job.rpc.server;
  * 
  */
 public class RpcServerTest {
+	
+	@Test
+	public void startRpcServer() throws Exception {
+		RpcBootStrap.publish();		
+	}
+	
 	public static void main(String[] args) throws Exception {
 		RpcBootStrap.publish();
 	}
