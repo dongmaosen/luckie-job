@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.rookie.job.cfg.LuckieConfig;
+import org.rookie.job.rpc.proto.LuckieJobProtos.LuckieJob;
 import org.rookie.job.rpc.server.service.impl.TestServiceImpl;
 
 /**
@@ -35,37 +36,40 @@ public class RpcBootStrap {
 			ObjectOutputStream output = null;
 			try {
 				//序列化部分，定义一个高效的序列化协议
-				input = new ObjectInputStream(client.getInputStream());
+//				input = new ObjectInputStream(client.getInputStream());
 				output = new ObjectOutputStream(client.getOutputStream());
-				Class<?> serviceClass = (Class<?>) input.readObject();
 				//协议解析部分，根据客户端的请求，自定义
-				Object obj = findService(serviceClass);
-				if (obj == null) {
-					output.writeObject("no service available");
-				} else {
-					try {
-						//读取方法名
-						String methodName = input.readUTF();
-						//参数类型
-						Class<?>[] parameterTypes = (Class<?>[]) input.readObject();
-	                    //参数值
-						Object[] arguments = (Object[]) input.readObject();
-						//获得要调用的方法
-	                    Method method = obj.getClass().getMethod(methodName, parameterTypes);
-	                    //调用方法返回结果
-	                    Object result = method.invoke(obj, arguments);  
-	                    output.writeObject(result); 
-					} catch (Throwable t) {
-						t.printStackTrace();
-						output.writeObject(t);
-					}
-				}
-				
+//				Class<?> serviceClass = (Class<?>) input.readObject();
+//				Object obj = findService(serviceClass);
+//				if (obj == null) {
+//					output.writeObject("no service available");
+//				} else {
+//					try {
+//						//读取方法名
+//						String methodName = input.readUTF();
+//						//参数类型
+//						Class<?>[] parameterTypes = (Class<?>[]) input.readObject();
+//	                    //参数值
+//						Object[] arguments = (Object[]) input.readObject();
+//						//获得要调用的方法
+//	                    Method method = obj.getClass().getMethod(methodName, parameterTypes);
+//	                    //调用方法返回结果
+//	                    Object result = method.invoke(obj, arguments);  
+//	                    output.writeObject(result); 
+//					} catch (Throwable t) {
+//						t.printStackTrace();
+//						output.writeObject(t);
+//					}
+//				}
+				LuckieJob luckieJob = LuckieJob.parseDelimitedFrom(client.getInputStream());
+				System.out.println(luckieJob.getArgs());
+				System.out.print(luckieJob.getEventId());
+				output.writeObject("ok");
+				output.flush();
 			} catch (Exception e) {
-				// TODO: handle exception
+				e.printStackTrace();
 			} finally {
 				client.close();
-				input.close();
 				output.close();
 			}
 		}
