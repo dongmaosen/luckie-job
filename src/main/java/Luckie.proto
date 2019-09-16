@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_package = "org.rookie.job.rpc.proto";
+option java_outer_classname = "LuckieProto";
+
+/*luckie protocol*/
+message Luckie {
+    enum Event {
+        HEART_BEAT = 0;
+		ELECTION = 1;
+		REPLECATION =2;
+    }
+    Event event = 1;
+    
+    map<string, string> data = 2;
+}
+
+
+
