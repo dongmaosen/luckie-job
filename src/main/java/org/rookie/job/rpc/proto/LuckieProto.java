@@ -191,9 +191,9 @@ public final class LuckieProto {
        */
       ELECTION(1),
       /**
-       * <code>REPLECATION = 2;</code>
+       * <code>REPLICATION = 2;</code>
        */
-      REPLECATION(2),
+      REPLICATION(2),
       UNRECOGNIZED(-1),
       ;
 
@@ -206,9 +206,9 @@ public final class LuckieProto {
        */
       public static final int ELECTION_VALUE = 1;
       /**
-       * <code>REPLECATION = 2;</code>
+       * <code>REPLICATION = 2;</code>
        */
-      public static final int REPLECATION_VALUE = 2;
+      public static final int REPLICATION_VALUE = 2;
 
 
       public final int getNumber() {
@@ -237,7 +237,7 @@ public final class LuckieProto {
         switch (value) {
           case 0: return HEART_BEAT;
           case 1: return ELECTION;
-          case 2: return REPLECATION;
+          case 2: return REPLICATION;
           default: return null;
         }
       }
@@ -991,7 +991,7 @@ public final class LuckieProto {
       "2\r.Luckie.Event\022\037\n\004data\030\002 \003(\0132\021.Luckie.D" +
       "ataEntry\032+\n\tDataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va" +
       "lue\030\002 \001(\t:\0028\001\"6\n\005Event\022\016\n\nHEART_BEAT\020\000\022\014" +
-      "\n\010ELECTION\020\001\022\017\n\013REPLECATION\020\002B\'\n\030org.roo" +
+      "\n\010ELECTION\020\001\022\017\n\013REPLICATION\020\002B\'\n\030org.roo" +
       "kie.job.rpc.protoB\013LuckieProtob\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor

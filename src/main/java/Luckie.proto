@@ -8,7 +8,7 @@ message Luckie {
     enum Event {
         HEART_BEAT = 0;
 		ELECTION = 1;
-		REPLECATION =2;
+		REPLICATION =2;
     }
     Event event = 1;
     

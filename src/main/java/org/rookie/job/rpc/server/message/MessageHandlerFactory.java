@@ -25,7 +25,7 @@ public class MessageHandlerFactory {
 		case Event.HEART_BEAT_VALUE:
 			handler = new HeartBeatHandler();
 			break;
-		case Event.REPLECATION_VALUE:
+		case Event.REPLICATION_VALUE:
 			handler = new ReplicationHandler();
 			break;
 		default:
