@@ -1,6 +1,5 @@
 package org.rookie.job.rpc.client;
 
-import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.Iterator;
 import java.util.Map;
@@ -26,7 +25,7 @@ public class RPCClient {
     	ip = "127.0.0.1";
     }
 
-    public static Object invoke(Event event, Map<String, String> data) throws Throwable {
+    public static LuckieProto.Luckie callRemote(Event event, Map<String, String> data) throws Throwable {
         Socket socket = new Socket(ip, LuckieConfig.LISTEN_PORT);
         try {
         	Builder luckieBuilder = LuckieProto.Luckie.newBuilder();
@@ -41,18 +40,17 @@ public class RPCClient {
         	LuckieProto.Luckie luckie = luckieBuilder.setEvent(event).build();
             luckie.writeDelimitedTo(socket.getOutputStream());
             socket.getOutputStream().flush();
-            ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
-            Object result = input.readObject();
-            if(result instanceof Throwable) {
-                throw (Throwable) result;
-            }
-                return result;
+			LuckieProto.Luckie responsedLuckie = LuckieProto.Luckie.parseDelimitedFrom(socket.getInputStream());
+			
+            return responsedLuckie;
         } catch(Exception e) {
         	e.printStackTrace();
+        	return null;
         } finally {
+        	socket.shutdownInput();
             socket.shutdownOutput();
+            socket.close();
         }
-        return null;
     }
 
 

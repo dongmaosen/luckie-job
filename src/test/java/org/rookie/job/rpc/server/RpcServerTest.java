@@ -14,10 +14,10 @@ public class RpcServerTest {
 	
 	@Test
 	public void startRpcServer() throws Exception {
-		RpcBootStrap.publish();		
+		RpcBootStrap.start();		
 	}
 	
 	public static void main(String[] args) throws Exception {
-		RpcBootStrap.publish();
+		RpcBootStrap.start();
 	}
 }
