@@ -1,9 +1,9 @@
-package org.rookie.job.rpc.server.message.impl;
+package org.rookie.job.rpc.message.impl;
 
 import java.util.Map;
 
 import org.rookie.job.rpc.proto.LuckieProto.Luckie;
-import org.rookie.job.rpc.server.message.IMessageHandler;
+import org.rookie.job.rpc.message.IMessageHandler;
 
 /**
  *
@@ -16,7 +16,13 @@ import org.rookie.job.rpc.server.message.IMessageHandler;
 public class HeartBeatHandler implements IMessageHandler {
 
 	@Override
-	public Luckie handle(Map<String, String> dataMap) {
+	public Luckie handleServer(Map<String, String> dataMap) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Luckie handleClient(Map<String, String> dataMap) {
 		// TODO Auto-generated method stub
 		return null;
 	}

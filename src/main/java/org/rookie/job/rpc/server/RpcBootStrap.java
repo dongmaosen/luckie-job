@@ -1,16 +1,13 @@
 package org.rookie.job.rpc.server;
 
-
-import java.net.ServerSocket;
-import java.net.Socket;
-
 import org.rookie.job.cfg.LuckieConfig;
 import org.rookie.job.common.LuckieShutdownHandler;
 import org.rookie.job.common.OSService;
-import org.rookie.job.rpc.proto.LuckieProto;
 
-import org.rookie.job.rpc.server.message.MessageHandlerFactory;
-
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import sun.misc.Signal;
 
 /**
@@ -22,11 +19,6 @@ import sun.misc.Signal;
  * 
  */
 public class RpcBootStrap {
-	
-	/**
-	 * 标识是否对外提供服务
-	 */
-	private static Boolean Running = true;
 	
 	/**
 	 * 服务端启动
@@ -46,27 +38,18 @@ public class RpcBootStrap {
 	 * @throws Exception
 	 */
 	private static void publish() throws Exception {
-		//TODO 后续引入netty
-		ServerSocket server = new ServerSocket(LuckieConfig.LISTEN_PORT);
-		Socket client = null;
-		while (Running) {
-			client = server.accept();
-			//TODO 线程池
-			try {
-				LuckieProto.Luckie request = LuckieProto.Luckie.parseDelimitedFrom(client.getInputStream());
-				LuckieProto.Luckie response= MessageHandlerFactory.getHandler(request).handle(request.getDataMap());
-	        	response.writeDelimitedTo(client.getOutputStream());
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				client.close();
-			}
+		EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+		EventLoopGroup workerGroup = new NioEventLoopGroup();
+		try {
+			ServerBootstrap bootStrap = new ServerBootstrap();
+			bootStrap.group(bossGroup, workerGroup)
+					 .channel(NioServerSocketChannel.class)
+					 .childHandler(new RPCServerMessageInitializer());
+			bootStrap.bind(LuckieConfig.LISTEN_PORT).sync().channel().closeFuture().sync();
+		} finally {
+			bossGroup.shutdownGracefully();
+			workerGroup.shutdownGracefully();
 		}
-		server.close();
-	}
-	
-	public static void shutdown() {
-		Running = false;
 	}
 
 }

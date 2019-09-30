@@ -1,10 +1,10 @@
-package org.rookie.job.rpc.server.message;
+package org.rookie.job.rpc.message;
 
+import org.rookie.job.rpc.message.impl.ElectionHandler;
+import org.rookie.job.rpc.message.impl.HeartBeatHandler;
+import org.rookie.job.rpc.message.impl.ReplicationHandler;
 import org.rookie.job.rpc.proto.LuckieProto.Luckie;
 import org.rookie.job.rpc.proto.LuckieProto.Luckie.Event;
-import org.rookie.job.rpc.server.message.impl.ElectionHandler;
-import org.rookie.job.rpc.server.message.impl.HeartBeatHandler;
-import org.rookie.job.rpc.server.message.impl.ReplicationHandler;
 
 /**
  *

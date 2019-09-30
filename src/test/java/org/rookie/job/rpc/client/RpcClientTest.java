@@ -19,13 +19,12 @@ public class RpcClientTest {
 	
 	@Test
 	public void rpcClientTest() throws Throwable {		
-		RPCClient.init(); 
+		RPCClient client = new RPCClient("127.0.0.1"); 
 		Event e = Event.ELECTION;
 		Map<String, String> s = new HashMap<String, String>();
 		s.put("k1", "v1");
 		s.put("k2", "v2");
-		Luckie luckie = RPCClient.callRemote(e, s);
-		System.out.println(luckie.getDataMap());
-		System.out.println(luckie.getEvent().getNumber());
+		client.callRemote(e, s);
+		Thread.sleep(100000);
 	}
 }
