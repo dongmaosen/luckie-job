@@ -26,8 +26,8 @@ public class RPCClient {
 	public RPCClient(String ip) {
 		this.ip = ip;
 	}
-
-    public void callRemote(Event event, Map<String, String> data) throws Throwable {
+    
+    public void commonCall(Event event, Map<String, String> data) throws Throwable {
     	EventLoopGroup group = new NioEventLoopGroup();
     	try {
 			Bootstrap b = new Bootstrap();
@@ -35,19 +35,20 @@ public class RPCClient {
 			 .channel(NioSocketChannel.class)
 			 .handler(new RPCClientInitializer());
 			//新建一个连接
-			Channel ch = b.connect(ip, LuckieConfig.LISTEN_PORT).channel();
+			Channel ch = b.connect(ip, LuckieConfig.LISTEN_PORT).sync().channel();
 			
 			RPCClientHandler handler = ch.pipeline().get(RPCClientHandler.class);
 		
 			handler.sendRequest(event, data);
-			
-			ch.close();
+			//close会导致接收不到服务端的返回信息
+			ch.closeFuture().sync();
 			
     	} finally {
     		group.shutdownGracefully();
 		}
         
     }
+    
 
 
 }

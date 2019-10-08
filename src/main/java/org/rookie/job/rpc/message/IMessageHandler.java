@@ -1,7 +1,5 @@
 package org.rookie.job.rpc.message;
 
-import java.util.Map;
-
 import org.rookie.job.rpc.proto.LuckieProto.Luckie;
 
 /**
@@ -14,8 +12,8 @@ import org.rookie.job.rpc.proto.LuckieProto.Luckie;
  */
 public interface IMessageHandler {
 
-	public Luckie handleServer(Map<String, String> dataMap);
+	public Luckie handleServer(Luckie request);
 	
-	public Luckie handleClient(Map<String, String> dataMap);
+	public void handleClient(Luckie response);
 
 }

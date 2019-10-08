@@ -1,8 +1,12 @@
 package org.rookie.job.rpc.message.impl;
 
-import java.util.Map;
-
+import org.rookie.job.rpc.proto.LuckieProto;
 import org.rookie.job.rpc.proto.LuckieProto.Luckie;
+import org.rookie.job.rpc.proto.LuckieProto.Luckie.Builder;
+import org.rookie.job.rpc.proto.LuckieProto.Luckie.Event;
+
+import io.netty.util.ReferenceCountUtil;
+
 import org.rookie.job.rpc.message.IMessageHandler;
 
 /**
@@ -16,15 +20,17 @@ import org.rookie.job.rpc.message.IMessageHandler;
 public class HeartBeatHandler implements IMessageHandler {
 
 	@Override
-	public Luckie handleServer(Map<String, String> dataMap) {
-		// TODO Auto-generated method stub
-		return null;
+	public Luckie handleServer(Luckie request) {
+		ReferenceCountUtil.release(request);
+		Builder builder = LuckieProto.Luckie.newBuilder();
+		builder.putData("pong", "ok");
+		Luckie lk = builder.setEvent(Event.HEART_BEAT).build();
+		return lk;
 	}
 
 	@Override
-	public Luckie handleClient(Map<String, String> dataMap) {
-		// TODO Auto-generated method stub
-		return null;
+	public void handleClient(Luckie response) {
+		ReferenceCountUtil.release(response);;
 	}
 
 }

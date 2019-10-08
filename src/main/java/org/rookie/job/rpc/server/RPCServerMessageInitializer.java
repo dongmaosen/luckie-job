@@ -9,6 +9,7 @@ import io.netty.handler.codec.protobuf.ProtobufDecoder;
 import io.netty.handler.codec.protobuf.ProtobufEncoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
+import io.netty.handler.timeout.IdleStateHandler;
 
 /**
  *
@@ -27,6 +28,7 @@ public class RPCServerMessageInitializer extends ChannelInitializer<SocketChanne
 		        .addLast(new ProtobufDecoder(LuckieProto.Luckie.getDefaultInstance()))
 		        .addLast(new ProtobufVarint32LengthFieldPrepender())
 		        .addLast(new ProtobufEncoder())
+		        .addLast(new IdleStateHandler(6, 0, 0))
 		        .addLast(new RPCServerHandler());
 	}
 	

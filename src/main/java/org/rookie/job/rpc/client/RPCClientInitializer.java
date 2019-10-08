@@ -9,6 +9,7 @@ import io.netty.handler.codec.protobuf.ProtobufDecoder;
 import io.netty.handler.codec.protobuf.ProtobufEncoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
+import io.netty.handler.timeout.IdleStateHandler;
 
 /**
  *
@@ -27,6 +28,7 @@ public class RPCClientInitializer extends ChannelInitializer<SocketChannel> {
 		 .addLast(new ProtobufDecoder(Luckie.getDefaultInstance()))
 		 .addLast(new ProtobufVarint32LengthFieldPrepender())
 		 .addLast(new ProtobufEncoder())
+		 .addLast(new IdleStateHandler(0, 5, 0))
 		 .addLast(new RPCClientHandler());
 	}
 

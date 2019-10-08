@@ -19,7 +19,7 @@ import org.rookie.job.rpc.proto.LuckieProto.Luckie.Event;
 public class ElectionHandler implements IMessageHandler {
 
 	@Override
-	public Luckie handleServer(Map<String, String> dataMap) {
+	public Luckie handleServer(Luckie request) {
 		Builder luckieBuilder = LuckieProto.Luckie.newBuilder();
 		//TODO 处理选举逻辑，返回选举结果
 		luckieBuilder.putData("test-k1", "test-v1");
@@ -27,9 +27,9 @@ public class ElectionHandler implements IMessageHandler {
 	}
 
 	@Override
-	public Luckie handleClient(Map<String, String> dataMap) {
+	public void handleClient(Luckie response) {
 		// TODO Auto-generated method stub
-		return null;
+
 	}
 
 }

@@ -2,6 +2,8 @@ package org.rookie.job.rpc.client;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import org.rookie.job.rpc.message.MessageHandlerFactory;
 import org.rookie.job.rpc.proto.LuckieProto;
@@ -12,6 +14,7 @@ import org.rookie.job.rpc.proto.LuckieProto.Luckie.Event;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.timeout.IdleStateEvent;
 
 /**
  *
@@ -25,23 +28,61 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Luckie> {
 
 	private volatile Channel channel;
 
+	private final BlockingQueue<Luckie> answer = new LinkedBlockingDeque<Luckie>();
+
 	@Override
 	public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-		super.channelRegistered(ctx);
 		channel = ctx.channel();
 	}
 
 	@Override
+	public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+		// 断开重连机制
+	}
+
+	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, Luckie msg) throws Exception {
-		MessageHandlerFactory.getHandler(msg).handleClient(msg.getDataMap());
+		MessageHandlerFactory.getHandler(msg).handleClient(msg);
+		answer.add(msg);
 	}
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		if (channel != null) {			
+		if (channel != null) {
 			channel.close();
 		}
 		ctx.close();
+		ctx.fireExceptionCaught(cause);
+	}
+	
+	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		//TODO 断开重连机制
+		
+	}
+	
+	@Override
+	public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+		if (evt instanceof IdleStateEvent) {
+			//发送心跳包
+			sendHeartbeatPacket(ctx);
+		}
+	}
+	
+	private void sendHeartbeatPacket(ChannelHandlerContext ctx) {
+		Builder luckieBuilder = LuckieProto.Luckie.newBuilder();
+		Event event = Event.HEART_BEAT;
+		luckieBuilder.putData("ping", "ok");
+		LuckieProto.Luckie luckie = luckieBuilder.setEvent(event).build();
+		ctx.writeAndFlush(luckie);
+	}
+	
+	/**
+	 * 每读取一次，都会有回调该方法
+	 */
+	@Override
+	public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+		System.out.println("channelReadComplete : " + ctx.name());
 	}
 
 	public void sendRequest(Event event, Map<String, String> data) {
@@ -55,6 +96,15 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Luckie> {
 		}
 		LuckieProto.Luckie luckie = luckieBuilder.setEvent(event).build();
 		channel.writeAndFlush(luckie);
+		// 写入后等待，由于是异步
+		for (;;) {
+			try {
+				answer.take();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			break;
+		}
 	}
 
 }
