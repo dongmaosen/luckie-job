@@ -18,7 +18,7 @@ public class RpcClientTest {
 	
 	@Test
 	public void rpcClientTest() throws Throwable {		
-		RPCClient client = new RPCClient("127.0.0.1"); 
+		RPCClient client = new RPCClient("127.0.0.1", -1); 
 		Event e = Event.HEART_BEAT;
 		Map<String, String> s = new HashMap<String, String>();
 		s.put("k1", "v1");

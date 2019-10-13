@@ -28,8 +28,6 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Luckie> {
 
 	private volatile Channel channel;
 
-	private final BlockingQueue<Luckie> answer = new LinkedBlockingDeque<Luckie>();
-
 	@Override
 	public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
 		channel = ctx.channel();
@@ -43,7 +41,6 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Luckie> {
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, Luckie msg) throws Exception {
 		MessageHandlerFactory.getHandler(msg).handleClient(msg);
-		answer.add(msg);
 	}
 
 	@Override
@@ -83,28 +80,6 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Luckie> {
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
 		System.out.println("channelReadComplete : " + ctx.name());
-	}
-
-	public void sendRequest(Event event, Map<String, String> data) {
-		Builder luckieBuilder = LuckieProto.Luckie.newBuilder();
-		if (data != null) {
-			Iterator<String> dataIter = data.keySet().iterator();
-			while (dataIter.hasNext()) {
-				String key = dataIter.next();
-				luckieBuilder.putData(key, data.get(key));
-			}
-		}
-		LuckieProto.Luckie luckie = luckieBuilder.setEvent(event).build();
-		channel.writeAndFlush(luckie);
-		// 写入后等待，由于是异步
-		for (;;) {
-			try {
-				answer.take();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			break;
-		}
 	}
 
 }
