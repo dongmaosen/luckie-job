@@ -15,6 +15,9 @@ import org.rookie.job.raft.util.TimeoutUtil;
  * 
  */
 public class RaftBootstrap extends TimerTask{
+	/**
+	 * 调用用的定时器
+	 */
 	private static Timer timer = new Timer();
 	
 	private static RaftBootstrap instance = new RaftBootstrap(TimeoutUtil.getElectionTimeoutMilliseconds());
@@ -22,12 +25,19 @@ public class RaftBootstrap extends TimerTask{
 	private RaftBootstrap(long electionTimeoutMilliseconds) {
 		ElectionProcess.electionTimeout = electionTimeoutMilliseconds;
 	}
+	
+	private static volatile boolean running = false; 
+	
 	/**
 	 * 外部调用的初始化方法
 	 */
 	public static void init() {
-		//等待ElectionTime的时间
-		timer.schedule(instance, ElectionProcess.electionTimeout);
+		if (!running) {
+			running = true;
+			//等待ElectionTime的时间
+			System.out.println("等待 " + ElectionProcess.electionTimeout + " ms 后开始调度");
+			timer.schedule(instance, ElectionProcess.electionTimeout);
+		}
 	}
 
 	/**
@@ -35,14 +45,8 @@ public class RaftBootstrap extends TimerTask{
 	 */
 	@Override
 	public void run() {
-		// 然后判断是否要进入candidate状态
-		while(ElectionProcess.toCandidate()) {
-			if (ElectionProcess.followerToCandidate()) {
-				//进入候选人状态，开始进行选举，如果在electionTimeout时间内，没有选出leader，则清除本地信息，重新进行选举
-				//TODO
-				System.currentTimeMillis();
-			}
-		}
+		// 然后判断是否要进入candidate状态，可以则进入下一个阶段，不可以，则保持follower状态
+		
 	}
 	
 }

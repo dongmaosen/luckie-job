@@ -43,6 +43,12 @@ public class ElectionProcess {
 	 * 选举超时时间
 	 */
 	public static long electionTimeout = -1;
+	
+	/**
+	 * 已经等待进入选举流程的时间
+	 */
+	public static long waitTimeMilliseconds = 0;
+	
 	//---选举变量 E---
 	//---本地配置变量 S---
 	/**
@@ -90,7 +96,7 @@ public class ElectionProcess {
 	}
 	
 	/**
-	 * 可否进入candidate状态
+	 * 
 	 * @return
 	 */
 	public static boolean toCandidate() {
