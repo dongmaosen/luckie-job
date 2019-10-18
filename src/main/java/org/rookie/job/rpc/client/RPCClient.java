@@ -9,6 +9,7 @@ import org.rookie.job.rpc.proto.LuckieProto.Luckie.Event;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -28,21 +29,25 @@ public class RPCClient {
 
 	private String ip;
 	private int port;
-	public RPCClient(String ip, int port) throws Exception {
+	Channel ch;
+	
+	public RPCClient(String ip, int port) {
 		this.ip = ip;
 		this.port = port;
 	}
-	public void connect() throws Exception {
+	/**
+	 * 使用时，首先调用connect方法，超时时间后抛出异常
+	 * @throws Exception
+	 */
+	public void connect() throws Exception{
 		b.group(group)
+		 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
 		 .channel(NioSocketChannel.class)
 	     .handler(new RPCClientInitializer());
-		Channel ch = b.connect(ip, port).sync().channel();
+	    ch = b.connect(ip, port).sync().channel();
 	}
-    public void commonCall(Event event, Map<String, String> data) throws Throwable {
+    public void commonCall(Event event, Map<String, String> data) throws Exception {
     	try {
-			
-			//新建一个连接
-					
 			Builder luckieBuilder = LuckieProto.Luckie.newBuilder();
 			if (data != null) {
 				Iterator<String> dataIter = data.keySet().iterator();
@@ -52,20 +57,19 @@ public class RPCClient {
 				}
 			}
 			LuckieProto.Luckie luckie = luckieBuilder.setEvent(event).build();
-//			ch.writeAndFlush(luckie);
-//			
-//			ch.closeFuture().sync();
-			
+			ch.writeAndFlush(luckie);			
     	} finally {
     		group.shutdownGracefully();
 		}
         
     }
-
-	public void sendRequest(Event event, Map<String, String> data) {
-		
-		
-	}
-
+    
+    /**
+     * 主动调用关闭连接的方法
+     * @throws InterruptedException
+     */
+    public void close() throws InterruptedException {
+		ch.closeFuture().sync();
+    }
 
 }

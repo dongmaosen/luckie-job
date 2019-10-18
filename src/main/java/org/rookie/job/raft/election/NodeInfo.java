@@ -8,6 +8,7 @@ package org.rookie.job.raft.election;
  * 
  */
 public class NodeInfo {
+	
 	/**
 	 * IP地址
 	 */
@@ -28,7 +29,14 @@ public class NodeInfo {
 	 */
 	private boolean voted = false;
 	
+	private int term = 0;
 	
+	public int getTerm() {
+		return term;
+	}
+	public void setTerm(int term) {
+		this.term = term;
+	}
 	public String getIp() {
 		return ip;
 	}
@@ -54,4 +62,13 @@ public class NodeInfo {
 		this.voted = voted;
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj != null &&obj instanceof NodeInfo) {
+			if (((NodeInfo) obj).getIp().equals(getIp()) && ((NodeInfo) obj).getPort() == getPort()) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

@@ -4,6 +4,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.rookie.job.raft.election.ElectionProcess;
+import org.rookie.job.raft.enums.NodeState;
 import org.rookie.job.raft.util.TimeoutUtil;
 
 /**
@@ -16,7 +17,7 @@ import org.rookie.job.raft.util.TimeoutUtil;
  */
 public class RaftBootstrap extends TimerTask{
 	/**
-	 * 调用用的定时器
+	 * 定时器，设定超时时间的
 	 */
 	private static Timer timer = new Timer();
 	
@@ -34,18 +35,30 @@ public class RaftBootstrap extends TimerTask{
 	public static void init() {
 		if (!running) {
 			running = true;
-			//等待ElectionTime的时间
-			System.out.println("等待 " + ElectionProcess.electionTimeout + " ms 后开始调度");
+			//选举启动，选举超时时间后开始进入选举状态
+			System.out.println("选举启动，选举超时时间后开始进入选举状态: " + ElectionProcess.electionTimeout + " ms 后开始调度");
 			timer.schedule(instance, ElectionProcess.electionTimeout);
 		}
 	}
 
 	/**
-	 * 主执行方法
+	 * 选举超时时间后，执行的方法
 	 */
 	@Override
 	public void run() {
-		// 然后判断是否要进入candidate状态，可以则进入下一个阶段，不可以，则保持follower状态
+		if (ElectionProcess.STATE.getState() == NodeState.FOLLOWER.getState()) {
+			//1.在follower状态超时，进入到candidate状态
+			System.out.println("在follower状态超时，进入到candidate状态");
+			ElectionProcess.followerToCandidate();
+			//2.进入新一轮的等待
+			timer.schedule(instance, ElectionProcess.electionTimeout);
+		} else if (ElectionProcess.STATE.getState() == NodeState.CANDIDATE.getState()) {
+			//2.原来就是candidate，超时后进入新一轮的选举
+			ElectionProcess.candidateToNextRound();
+			timer.schedule(instance, ElectionProcess.electionTimeout);
+		} else if (ElectionProcess.STATE.getState() == NodeState.LEADER.getState()) {
+			//TODO 当前为leader，暂时不做什么
+		}
 		
 	}
 	
