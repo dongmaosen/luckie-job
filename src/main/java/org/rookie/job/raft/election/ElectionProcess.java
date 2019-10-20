@@ -169,7 +169,10 @@ public class ElectionProcess {
 					voteMap.add(node);
 				}
 			} else if (STATE.getState() == NodeState.CANDIDATE.getState()) {
-				
+				//
+				if (term > voteTerm) {
+					
+				}
 			} else if (STATE.getState() == NodeState.LEADER.getState()) {
 				
 			}
