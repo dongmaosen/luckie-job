@@ -25,6 +25,7 @@ public class ElectionHandler implements IMessageHandler {
 		} else {
 			luckieBuilder.putData("result", "0");
 		}
+		luckieBuilder.putData("term", request.getDataMap().get("term"));
 		luckieBuilder.putData("sub_event", "2");
 		luckieBuilder.putData("source_ip", ElectionProcess.localnode.getIp());
 		luckieBuilder.putData("source_port", ElectionProcess.localnode.getPort() + "");
@@ -33,8 +34,7 @@ public class ElectionHandler implements IMessageHandler {
 
 	@Override
 	public void handleClient(Luckie response) {
-		// TODO Auto-generated method stub
-
+		ElectionProcess.processElectionClient(response);
 	}
 
 }

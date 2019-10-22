@@ -26,4 +26,17 @@ public enum NodeState {
 		this.state = state;
 	}
 	
+	public static String getName(int state) {
+		switch (state) {
+			case 0:
+				return "FOLLOWER";
+			case 1:
+				return "CANDIDATE";
+			case 2:
+				return "LEADER";
+			default:
+				return "UNKNOWN";
+		}
+	}
+	
 }

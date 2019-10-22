@@ -18,13 +18,14 @@ public class RpcClientTest {
 	
 	@Test
 	public void rpcClientTest() throws Throwable {		
-		RPCClient client = new RPCClient("127.0.0.1", -1); 
+		RPCClient client = RPCClient.getRPCClient("127.0.0.1", -1); 
 		Event e = Event.HEART_BEAT;
 		Map<String, String> s = new HashMap<String, String>();
 		s.put("k1", "v1");
 		s.put("k2", "v2");
 		s.put("k3", "v3");
 		try {
+			client.connect();
 			client.commonCall(e, s);			
 		} catch (Exception e2) {
 			e2.printStackTrace();

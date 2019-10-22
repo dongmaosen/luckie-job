@@ -41,6 +41,11 @@ public class RaftBootstrap extends TimerTask{
 		}
 	}
 
+	public static void reSchedule() {
+		timer.cancel();
+		timer.schedule(instance, ElectionProcess.electionTimeout);
+	}
+	
 	/**
 	 * 选举超时时间后，执行的方法
 	 */

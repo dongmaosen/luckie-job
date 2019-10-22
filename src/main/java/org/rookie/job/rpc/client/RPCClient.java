@@ -1,5 +1,6 @@
 package org.rookie.job.rpc.client;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -31,21 +32,39 @@ public class RPCClient {
 	private int port;
 	Channel ch;
 	
-	public RPCClient(String ip, int port) {
+	public static Map<String, RPCClient> connectionMap = new HashMap<String, RPCClient>();
+	
+	public static RPCClient getRPCClient(String ip, int port) {
+		if (connectionMap.get(ip + "-" + port) == null) {
+			RPCClient client = new RPCClient(ip, port);
+			connectionMap.put(ip + "-" + port, client);
+		}
+		return connectionMap.get(ip + "-" + port);
+	}
+	
+	private RPCClient(String ip, int port) {
 		this.ip = ip;
 		this.port = port;
+		b.group(group)
+		 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+		 .channel(NioSocketChannel.class)
+		 .handler(new RPCClientInitializer());
 	}
 	/**
 	 * 使用时，首先调用connect方法，超时时间后抛出异常
 	 * @throws Exception
 	 */
 	public void connect() throws Exception{
-		b.group(group)
-		 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-		 .channel(NioSocketChannel.class)
-	     .handler(new RPCClientInitializer());
-	    ch = b.connect(ip, port).sync().channel();
+		if (ch == null || !ch.isActive()) {			
+			ch = b.connect(ip, port).sync().channel();
+		}
 	}
+	/**
+	 * 普通请求
+	 * @param event
+	 * @param data
+	 * @throws Exception
+	 */
     public void commonCall(Event event, Map<String, String> data) throws Exception {
     	try {
 			Builder luckieBuilder = LuckieProto.Luckie.newBuilder();
@@ -62,6 +81,14 @@ public class RPCClient {
     		group.shutdownGracefully();
 		}
         
+    }
+    
+    /**
+     * 判断当前通道是否存活
+     * @return
+     */
+    public boolean isAlive() {
+    	return ch !=null && ch.isActive();
     }
     
     /**
