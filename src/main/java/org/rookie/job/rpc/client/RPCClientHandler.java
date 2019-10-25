@@ -1,10 +1,6 @@
 package org.rookie.job.rpc.client;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
-
+import org.rookie.job.raft.election.ElectionProcess;
 import org.rookie.job.rpc.message.MessageHandlerFactory;
 import org.rookie.job.rpc.proto.LuckieProto;
 import org.rookie.job.rpc.proto.LuckieProto.Luckie;
@@ -34,17 +30,13 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Luckie> {
 	}
 
 	@Override
-	public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-		// 断开重连机制
-	}
-
-	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, Luckie msg) throws Exception {
 		MessageHandlerFactory.getHandler(msg).handleClient(msg);
 	}
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		System.out.println("RPCClientHandler exceptionCaught");
 		if (channel != null) {
 			channel.close();
 		}
@@ -54,8 +46,8 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Luckie> {
 	
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		//TODO 断开重连机制
-		
+		//TODO 连接断开，可能时机（leader心跳发方要处理的，投票发起方要处理的）
+		System.out.println("RPCClientHandler channelInactive");
 	}
 	
 	@Override
@@ -69,17 +61,13 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Luckie> {
 	private void sendHeartbeatPacket(ChannelHandlerContext ctx) {
 		Builder luckieBuilder = LuckieProto.Luckie.newBuilder();
 		Event event = Event.HEART_BEAT;
-		luckieBuilder.putData("ping", "ok");
+		luckieBuilder.putData("sub_event", "1");
+		luckieBuilder.putData("state", ElectionProcess.STATE.getState() + "");
+		luckieBuilder.putData("term", ElectionProcess.term + "");
+		luckieBuilder.putData("source_ip", ElectionProcess.localnode.getIp());
+		luckieBuilder.putData("source_port", ElectionProcess.localnode.getPort() + "");
 		LuckieProto.Luckie luckie = luckieBuilder.setEvent(event).build();
 		ctx.writeAndFlush(luckie);
-	}
-	
-	/**
-	 * 每读取一次，都会有回调该方法
-	 */
-	@Override
-	public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-		System.out.println("channelReadComplete : " + ctx.name());
 	}
 
 }

@@ -27,7 +27,8 @@ public class HeartBeatTask implements Runnable {
 	 * @param term
 	 */
 	public HeartBeatTask(NodeInfo node, int term) {
-		 
+		 this.node = node;
+		 this.term = term;
 	}
 
 	@Override
@@ -43,10 +44,13 @@ public class HeartBeatTask implements Runnable {
 					Event event = Event.HEART_BEAT;
 					Map<String, String> data = new HashMap<String, String>();
 					data.put("sub_event", "1");
+					data.put("state", ElectionProcess.STATE.getState() + "");
 					data.put("term", term + "");
 					data.put("source_ip", ElectionProcess.localnode.getIp());
 					data.put("source_port", ElectionProcess.localnode.getPort() + "");
 					rpc.commonCall(event, data);
+					//此处仅发送一次，在连接中不断发送
+					break;
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

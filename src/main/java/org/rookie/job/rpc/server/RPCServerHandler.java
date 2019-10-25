@@ -23,17 +23,15 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Luckie> {
 	private int heartbeatCounter = 0;
 
 	@Override
-	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		System.out.println("Client is active ......");
-	}
-
-	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		System.out.println("Client is inactive ......");
+		//连接的接收端（服务端）关闭处理
+		//重新进入选举状态
+		System.out.println("RPCServerHandler channelInactive");
 	}
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, Luckie request) throws Exception {
+		System.out.println("RPCServerHandler channelRead0 : " + request.getDataMap());
 		heartbeatCounter = 0;
 		LuckieProto.Luckie response = MessageHandlerFactory.getHandler(request).handleServer(request);
 		ctx.writeAndFlush(response);
@@ -49,6 +47,8 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Luckie> {
 			} else {
 				heartbeatCounter++;
 				System.out.println("lost heartbeat packet of (" + heartbeatCounter + "), time :" + new Date());
+				//失联，选举超时，直接发起请
+				
 			}
 		}
 	}

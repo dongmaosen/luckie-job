@@ -20,11 +20,9 @@ public class RaftBootstrap extends TimerTask{
 	 * 定时器，设定超时时间的
 	 */
 	private static Timer timer = new Timer();
-	
-	private static RaftBootstrap instance = new RaftBootstrap(TimeoutUtil.getElectionTimeoutMilliseconds());
-	
-	private RaftBootstrap(long electionTimeoutMilliseconds) {
-		ElectionProcess.electionTimeout = electionTimeoutMilliseconds;
+		
+	private RaftBootstrap() {
+		
 	}
 	
 	private static volatile boolean running = false; 
@@ -34,16 +32,17 @@ public class RaftBootstrap extends TimerTask{
 	 */
 	public static void init() {
 		if (!running) {
+			ElectionProcess.electionTimeout = TimeoutUtil.getElectionTimeoutMilliseconds();
 			running = true;
 			//选举启动，选举超时时间后开始进入选举状态
 			System.out.println("选举启动，选举超时时间后开始进入选举状态: " + ElectionProcess.electionTimeout + " ms 后开始调度");
-			timer.schedule(instance, ElectionProcess.electionTimeout);
+			timer.schedule(new RaftBootstrap(), ElectionProcess.electionTimeout);
 		}
 	}
 
 	public static void reSchedule() {
 		timer.cancel();
-		timer.schedule(instance, ElectionProcess.electionTimeout);
+		timer.schedule(new RaftBootstrap(), ElectionProcess.electionTimeout);
 	}
 	
 	/**
@@ -56,13 +55,11 @@ public class RaftBootstrap extends TimerTask{
 			System.out.println("在follower状态超时，进入到candidate状态");
 			ElectionProcess.followerToCandidate();
 			//2.进入新一轮的等待
-			timer.schedule(instance, ElectionProcess.electionTimeout);
+			timer.schedule(new RaftBootstrap(), ElectionProcess.electionTimeout);
 		} else if (ElectionProcess.STATE.getState() == NodeState.CANDIDATE.getState()) {
 			//2.原来就是candidate，超时后进入新一轮的选举
 			ElectionProcess.candidateToNextRound();
-			timer.schedule(instance, ElectionProcess.electionTimeout);
-		} else if (ElectionProcess.STATE.getState() == NodeState.LEADER.getState()) {
-			//TODO 当前为leader，暂时不做什么
+			timer.schedule(new RaftBootstrap(), ElectionProcess.electionTimeout);
 		}
 		
 	}

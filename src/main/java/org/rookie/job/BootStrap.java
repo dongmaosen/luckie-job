@@ -1,6 +1,5 @@
 package org.rookie.job;
 
-import org.omg.PortableServer.THREAD_POLICY_ID;
 import org.rookie.job.cfg.LuckieConfig;
 import org.rookie.job.raft.RaftBootstrap;
 import org.rookie.job.rpc.server.RpcBootStrap;
@@ -14,6 +13,12 @@ import org.rookie.job.rpc.server.RpcBootStrap;
  * 
  */
 public class BootStrap {
+	
+	/**
+	 * 
+	 */
+	public static boolean running = false;
+	
 	/**
 	 * 整个服务端初始化类
 	 * @param ip set null as default
@@ -30,7 +35,16 @@ public class BootStrap {
 		//0.初始化配置信息
 		LuckieConfig.init();
 		//1.初始化RPC服务，接收来自其他节点的信息
-		RpcBootStrap.start();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {				
+				try {
+					RpcBootStrap.start();
+				} catch (Exception e) {
+					
+				}
+			}
+		}).start();
 		//2.初始化本地选举流程
 		RaftBootstrap.init();
 	}

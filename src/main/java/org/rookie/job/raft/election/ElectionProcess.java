@@ -141,9 +141,7 @@ public class ElectionProcess {
 	private static void startElection() {
 		//周期+1
 		term++;
-		clearVariables();		
-		//当前运行任务停止
-		electionExec.shutdownNow();
+		clearVariables();
 		for (int i = 0; i < NODELIST.size(); i++) {
 			NodeInfo nodeInfo = NODELIST.get(i);
 			if (nodeInfo.equals(localnode)) {
@@ -165,8 +163,6 @@ public class ElectionProcess {
 				term++;
 				STATE = NodeState.CANDIDATE;
 				clearVariables();		
-				//当前运行任务停止
-				electionExec.shutdownNow();
 				for (int i = 0; i < NODELIST.size(); i++) {
 					NodeInfo nodeInfo = NODELIST.get(i);
 					if (nodeInfo.equals(localnode)) {
@@ -242,9 +238,6 @@ public class ElectionProcess {
 					voteSet.clear();
 					voteSet.add(node);
 					RaftBootstrap.reSchedule();
-					//1.停止发送心跳信息
-					//TODO
-					
 					return true;
 				}
 			}
@@ -287,6 +280,34 @@ public class ElectionProcess {
 					}
 				}
 			}
+		} finally {
+			lock.unlock();
+		}
+	}
+	
+	/**
+	 * 心跳接收端处理心跳信息
+	 * @param data 参数信息
+	 */
+	public static void processHearbeat(Map<String, String> data) {
+		int state = Integer.parseInt(data.get("state"));
+		int term = Integer.parseInt(data.get("term"));
+		String fromIP = data.get("source_ip");
+		int fromPort = Integer.parseInt(data.get("source_port"));
+		//仅仅leader的请求，其他请求作为超时心跳包
+		try {
+			lock.lock();
+			if (state == NodeState.LEADER.getState() && term >= ElectionProcess.term) {
+				//更新leader信息，当前节点状态转为follower
+				clearVariables();
+				leader.setIp(fromIP);
+				leader.setPort(fromPort);
+				leader.setTerm(term);
+				ElectionProcess.term = term;
+				//
+				STATE = NodeState.FOLLOWER;
+				RaftBootstrap.reSchedule();
+			} 
 		} finally {
 			lock.unlock();
 		}

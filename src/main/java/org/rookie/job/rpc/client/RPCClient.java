@@ -25,7 +25,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
  */
 public class RPCClient {
 
-	EventLoopGroup group = new NioEventLoopGroup();
+	EventLoopGroup group = new NioEventLoopGroup(12);
 	Bootstrap b = new Bootstrap();
 
 	private String ip;
@@ -55,7 +55,7 @@ public class RPCClient {
 	 * @throws Exception
 	 */
 	public void connect() throws Exception{
-		if (ch == null || !ch.isActive()) {			
+		if (ch == null || !ch.isActive()) {
 			ch = b.connect(ip, port).sync().channel();
 		}
 	}
@@ -66,21 +66,16 @@ public class RPCClient {
 	 * @throws Exception
 	 */
     public void commonCall(Event event, Map<String, String> data) throws Exception {
-    	try {
-			Builder luckieBuilder = LuckieProto.Luckie.newBuilder();
-			if (data != null) {
-				Iterator<String> dataIter = data.keySet().iterator();
-				while (dataIter.hasNext()) {
-					String key = dataIter.next();
-					luckieBuilder.putData(key, data.get(key));
-				}
-			}
-			LuckieProto.Luckie luckie = luckieBuilder.setEvent(event).build();
-			ch.writeAndFlush(luckie);			
-    	} finally {
-    		group.shutdownGracefully();
-		}
-        
+    	Builder luckieBuilder = LuckieProto.Luckie.newBuilder();
+    	if (data != null) {
+    		Iterator<String> dataIter = data.keySet().iterator();
+    		while (dataIter.hasNext()) {
+    			String key = dataIter.next();
+    			luckieBuilder.putData(key, data.get(key));
+    		}
+    	}
+    	LuckieProto.Luckie luckie = luckieBuilder.setEvent(event).build();
+    	ch.writeAndFlush(luckie); 
     }
     
     /**
@@ -97,6 +92,18 @@ public class RPCClient {
      */
     public void close() throws InterruptedException {
 		ch.closeFuture().sync();
+		group.shutdownGracefully();
+    }
+    
+    /**
+     * 主动关闭所有的连接
+     * @throws InterruptedException 
+     */
+    public static void shutdownAll() throws InterruptedException {
+    	Iterator<String> keys = connectionMap.keySet().iterator();
+    	while (keys.hasNext()) {
+    		connectionMap.get(keys.next()).close();
+    	}
     }
 
 }
