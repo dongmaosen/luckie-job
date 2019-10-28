@@ -270,7 +270,6 @@ public class ElectionProcess {
 					//超过半数，当前节点成为leader
 					if (voteSet.size() >= (NODELIST.size() + 1) / 2 && leader != null && !leader.equals(localnode)) {
 						//leader开始向其他节点发送心跳请求
-						heartbeatExec.shutdownNow();
 						for (int i = 0; i < NODELIST.size(); i++) {
 							NodeInfo nodeInfo = NODELIST.get(i);
 							if (!nodeInfo.equals(localnode)) {
