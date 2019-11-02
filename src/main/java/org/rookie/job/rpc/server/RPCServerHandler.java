@@ -24,9 +24,11 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Luckie> {
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		//连接的接收端（服务端）关闭处理
-		//重新进入选举状态
+		//连接的接收端（服务端）关闭处理：分状态处理
 		System.out.println("RPCServerHandler channelInactive");
+		if () {
+			
+		}
 	}
 
 	@Override
@@ -55,6 +57,7 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Luckie> {
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		cause.printStackTrace();
 		ctx.close();
 	}
 }

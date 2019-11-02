@@ -53,7 +53,12 @@ public class HeartBeatTask implements Runnable {
 					break;
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				System.out.println("发生异常：心跳连接异常");
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e1) {
+					
+				}
 			}
 		}
 	}

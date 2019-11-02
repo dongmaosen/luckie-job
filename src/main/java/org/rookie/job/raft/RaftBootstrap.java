@@ -1,6 +1,5 @@
 package org.rookie.job.raft;
 
-import java.util.Timer;
 import java.util.TimerTask;
 
 import org.rookie.job.raft.election.ElectionProcess;
@@ -15,7 +14,7 @@ import org.rookie.job.raft.util.TimeoutUtil;
  * Copyright @ 2019
  * 
  */
-public class RaftBootstrap extends TimerTask{
+public class RaftBootstrap {
 	/**
 	 * 定时器，设定超时时间的
 	 */
@@ -48,18 +47,18 @@ public class RaftBootstrap extends TimerTask{
 
 	private static void start() {
 		while (true && running) {
-			if (System.currentTimeMillis() - startTime > ElectionProcess.electionTimeout || fortest == 1) {
+			if (System.currentTimeMillis() - startTime > ElectionProcess.electionTimeout 
+					|| (fortest == 1 && ElectionProcess.localnode.getPort() == 10086)) {
 				if (ElectionProcess.STATE.getState() == NodeState.FOLLOWER.getState()) {
 					//1.在follower状态超时，进入到candidate状态
-					System.out.println("在follower状态超时，进入到candidate状态");
+					System.out.println(ElectionProcess.localnode.getPort()+ " 在follower状态超时，进入到candidate状态");
 					ElectionProcess.followerToCandidate();
 					//2.进入新一轮的等待
-//			timer.schedule(new RaftBootstrap(), ElectionProcess.electionTimeout);
 				} else if (ElectionProcess.STATE.getState() == NodeState.CANDIDATE.getState()) {
 					//2.原来就是candidate，超时后进入新一轮的选举
 					ElectionProcess.candidateToNextRound();
-//			timer.schedule(new RaftBootstrap(), ElectionProcess.electionTimeout);
 				}
+				//一次循环后，不管当前节点为什么状态，都进入下一个周期
 				startTime = System.currentTimeMillis();
 				fortest++;
 			} else {
@@ -74,27 +73,7 @@ public class RaftBootstrap extends TimerTask{
 	}
 
 	public static void reSchedule() {
-//		timer.schedule(new RaftBootstrap(), ElectionProcess.electionTimeout);
 		startTime = System.currentTimeMillis();
-	}
-	
-	/**
-	 * 选举超时时间后，执行的方法
-	 */
-	@Override
-	public void run() {
-		if (ElectionProcess.STATE.getState() == NodeState.FOLLOWER.getState()) {
-			//1.在follower状态超时，进入到candidate状态
-			System.out.println("在follower状态超时，进入到candidate状态");
-			ElectionProcess.followerToCandidate();
-			//2.进入新一轮的等待
-//			timer.schedule(new RaftBootstrap(), ElectionProcess.electionTimeout);
-		} else if (ElectionProcess.STATE.getState() == NodeState.CANDIDATE.getState()) {
-			//2.原来就是candidate，超时后进入新一轮的选举
-			ElectionProcess.candidateToNextRound();
-//			timer.schedule(new RaftBootstrap(), ElectionProcess.electionTimeout);
-		}
-		
 	}
 	
 }

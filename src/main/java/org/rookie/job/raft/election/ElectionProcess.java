@@ -38,7 +38,7 @@ public class ElectionProcess {
 	public static int term = 0;
 	
     /**
-	 * 选票信息
+	 * 获得的选票信息
 	 */
 	public static Set<NodeInfo> voteSet = new HashSet<NodeInfo>();
 	
@@ -64,7 +64,7 @@ public class ElectionProcess {
 	 */
 	private static void clearVariables() {
 		voteSet.clear();
-		leader = null;
+		leader = new NodeInfo();;
 		voteTerm = 0;
 	}
 	//---本地配置变量 S---
@@ -106,7 +106,7 @@ public class ElectionProcess {
 		 }
 		 sb.append("localnode : ").append(localnode.getIp()).append(":").append(localnode.getPort()).append("\n")
 		   .append("]");
-		return "";
+		return sb.toString();
 	}
 
 
@@ -268,7 +268,11 @@ public class ElectionProcess {
 				if (!voteSet.contains(node)) {
 					voteSet.add(node);
 					//超过半数，当前节点成为leader
-					if (voteSet.size() >= (NODELIST.size() + 1) / 2 && leader != null && !leader.equals(localnode)) {
+					if (voteSet.size() >= (NODELIST.size() + 1) / 2 && (leader == null || !leader.equals(localnode))) {
+						//将自己标识为leader（leader变量，节点状态）
+						voteTerm = term;
+						leader = localnode;
+						STATE = NodeState.LEADER;
 						//leader开始向其他节点发送心跳请求
 						for (int i = 0; i < NODELIST.size(); i++) {
 							NodeInfo nodeInfo = NODELIST.get(i);
@@ -299,6 +303,7 @@ public class ElectionProcess {
 			if (state == NodeState.LEADER.getState() && term >= ElectionProcess.term) {
 				//更新leader信息，当前节点状态转为follower
 				clearVariables();
+				voteTerm = term;
 				leader.setIp(fromIP);
 				leader.setPort(fromPort);
 				leader.setTerm(term);
@@ -310,6 +315,34 @@ public class ElectionProcess {
 		} finally {
 			lock.unlock();
 		}
+	}
+	
+	/**
+	 * 当前节点为leader，有client与之断开，
+	 * @param ip
+	 * @param port
+	 */
+	public static void processFollowerDisconnectByLeader(String ip, int port) {
+		try {
+			lock.lock();
+			//从当前选举节点中移除
+			NodeInfo disconnectNode = new NodeInfo();
+			disconnectNode.setIp(ip);
+			disconnectNode.setPort(port);
+			voteSet.remove(disconnectNode);
+			//判断剩余节点是否过半
+			if (voteSet.size() >= (NODELIST.size() + 1) / 2 ) {
+				//仍然是leader，重新发起心跳，因为目前的心跳在连接中实现，必须触发一下
+				heartbeatExec.submit(new HeartBeatTask(disconnectNode, term));
+			} else {
+				//少于半数节点，当前节点转为follower状态，重新进行选举
+				clearVariables();
+				STATE = NodeState.FOLLOWER;
+			}
+		} finally {
+			lock.unlock();
+		}
+		
 	}
 
 }

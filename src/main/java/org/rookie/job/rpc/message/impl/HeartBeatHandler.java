@@ -41,9 +41,8 @@ public class HeartBeatHandler implements IMessageHandler {
 
 	@Override
 	public void handleClient(Luckie response) {
-		//TODO
 		System.out.println(ElectionProcess.getElectionData());
-		ReferenceCountUtil.release(response);;
+		ReferenceCountUtil.release(response);
 	}
 
 }

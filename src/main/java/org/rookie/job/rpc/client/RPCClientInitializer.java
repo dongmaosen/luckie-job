@@ -1,5 +1,6 @@
 package org.rookie.job.rpc.client;
 
+import org.rookie.job.raft.util.TimeoutUtil;
 import org.rookie.job.rpc.proto.LuckieProto.Luckie;
 
 import io.netty.channel.ChannelInitializer;
@@ -28,7 +29,7 @@ public class RPCClientInitializer extends ChannelInitializer<SocketChannel> {
 		 .addLast(new ProtobufDecoder(Luckie.getDefaultInstance()))
 		 .addLast(new ProtobufVarint32LengthFieldPrepender())
 		 .addLast(new ProtobufEncoder())
-		 .addLast(new IdleStateHandler(0, 5, 0))
+		 .addLast(new IdleStateHandler(0, (int) (TimeoutUtil.getHearbeatTimeMilliseconds() / 1000), 0))
 		 .addLast(new RPCClientHandler());
 	}
 

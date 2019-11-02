@@ -13,12 +13,12 @@ public class TimeoutUtil {
 	 * @return
 	 */
 	public static long getElectionTimeoutMilliseconds() {
-		return (long) (205000 * (1 + Math.random()));
+		return (long) (10000 * (1 + Math.random()));
 	}
 	
-	private static long heartbeatTimemilliseconds = 500;
+	private static long heartbeatTimemilliseconds = 5000;
 	
-	public static long getHearbeatTime() {
+	public static long getHearbeatTimeMilliseconds() {
 		return heartbeatTimemilliseconds;
 	}
 	

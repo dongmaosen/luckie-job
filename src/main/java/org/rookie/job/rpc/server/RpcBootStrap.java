@@ -3,6 +3,7 @@ package org.rookie.job.rpc.server;
 import org.rookie.job.cfg.LuckieConfig;
 import org.rookie.job.common.LuckieShutdownHandler;
 import org.rookie.job.common.OSService;
+import org.rookie.job.raft.election.ElectionProcess;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -53,7 +54,9 @@ public class RpcBootStrap {
 				 .handler(new LoggingHandler(LogLevel.INFO))
 				 .childHandler(new RPCServerMessageInitializer());
 		ChannelFuture f = bootStrap.bind(LuckieConfig.LISTEN_PORT).sync();
+		System.out.println(ElectionProcess.localnode.getPort() + " 通道侦听中！");
 		f.channel().closeFuture().sync();
+		System.out.println(ElectionProcess.localnode.getPort() + " 通道关闭了！");
 	}
 
 	public static void shutdown() {
