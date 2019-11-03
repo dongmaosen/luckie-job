@@ -69,7 +69,7 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Luckie> {
 		System.out.println("RPCClientHandler channelInactive " + ip + " " +  port);
 		if (ElectionProcess.STATE.getState() == NodeState.LEADER.getState()) {
 			//当前节点为leader，与follower断开
-			ElectionProcess.processFollowerDisconnectByLeader(ip, port);
+			ElectionProcess.processFollowerDisconnectByLeaderClient(ip, port);
 		} else {
 			//其他状态，自动进入处理的循环，暂时不处理
 		}

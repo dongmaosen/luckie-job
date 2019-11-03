@@ -322,7 +322,7 @@ public class ElectionProcess {
 	 * @param ip
 	 * @param port
 	 */
-	public static void processFollowerDisconnectByLeader(String ip, int port) {
+	public static void processFollowerDisconnectByLeaderClient(String ip, int port) {
 		try {
 			lock.lock();
 			//从当前选举节点中移除
@@ -343,6 +343,30 @@ public class ElectionProcess {
 			lock.unlock();
 		}
 		
+	}
+	/**
+	 * server端是leader，处理客户端断开的异常情况
+	 * @param ip
+	 * @param port
+	 */
+	public static void processFollowerDisconnectByLeaderServer(String ip, int port) {
+		//判断当前节点是否可以继续成为leader
+		try {
+			lock.lock();
+			//从当前选举节点中移除
+			NodeInfo disconnectNode = new NodeInfo();
+			disconnectNode.setIp(ip);
+			disconnectNode.setPort(port);
+			voteSet.remove(disconnectNode);
+			//判断剩余节点是否过半
+			if (voteSet.size() < (NODELIST.size() + 1) / 2 ) {
+				//少于半数节点，当前节点转为follower状态，重新进行选举
+				clearVariables();
+				STATE = NodeState.FOLLOWER;
+			}
+		} finally {
+			lock.unlock();
+		}
 	}
 
 }
