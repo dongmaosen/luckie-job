@@ -12,12 +12,12 @@ public class NodeInfo {
 	/**
 	 * IP地址
 	 */
-	private String ip;
+	private String ip = "";
 	
 	/**
 	 * 侦听端口
 	 */
-	private int port;
+	private int port = -1;
 	
 	/**
 	 * 是否为本地节点（true-是 false-否）
@@ -61,14 +61,26 @@ public class NodeInfo {
 	public void setVoted(boolean voted) {
 		this.voted = voted;
 	}
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + port;
+		return result;
+	}
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj != null &&obj instanceof NodeInfo) {
+		if (obj != null && obj instanceof NodeInfo) {
 			if (((NodeInfo) obj).getIp().equals(getIp()) && ((NodeInfo) obj).getPort() == getPort()) {
 				return true;
 			}
 		}
 		return false;
+	}
+	
+	@Override
+	public String toString() {
+		return ip + ":" + port;
 	}
 }

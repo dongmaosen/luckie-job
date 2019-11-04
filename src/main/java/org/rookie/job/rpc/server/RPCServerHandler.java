@@ -56,6 +56,7 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Luckie> {
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, Luckie request) throws Exception {
 		System.out.println("RPCServerHandler channelRead0 : " + request.getEventValue() + "-" + request.getDataMap());
+		//接到消息，计数器清零
 		heartbeatCounter = 0;
 		LuckieProto.Luckie response = MessageHandlerFactory.getHandler(request).handleServer(request);
 		ctx.writeAndFlush(response);
@@ -66,13 +67,13 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Luckie> {
 		if (evt instanceof IdleStateEvent) {
 			System.out.println("recving heartbeat packet " + evt);
 			//空闲6s之后触发（心跳包丢失）
-			if (heartbeatCounter >= 3) {//TODO
-//				ctx.channel().close().sync();
-				System.out.println("disconnect from client");
+			if (heartbeatCounter >= 10) {
+				//连续10次没有收到心跳请求（1分钟），接收端则认为失联了，目
+				//前是leader发心跳，所以此处接收端非leader，异常由程序主逻辑处理，此处不处理
+				System.out.println("disconnect from client : heartbeatCounter >= 10 " + ip + " , " + port);
 			} else {
 				heartbeatCounter++;
 				System.out.println("lost heartbeat packet of (" + heartbeatCounter + "), time :" + new Date());
-				//失联，选举超时，直接发起请
 			}
 		}
 	}

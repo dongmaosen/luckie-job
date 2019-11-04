@@ -53,7 +53,7 @@ public class HeartBeatTask implements Runnable {
 					break;
 				}
 			} catch (Exception e) {
-				System.out.println("发生异常：心跳连接异常");
+				System.out.println("发生异常：心跳连接异常 to " + node.getIp() + ":" + node.getPort());
 				try {
 					Thread.sleep(5000);
 				} catch (InterruptedException e1) {

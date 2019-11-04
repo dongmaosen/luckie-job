@@ -1,7 +1,5 @@
 package org.rookie.job.raft;
 
-import java.util.TimerTask;
-
 import org.rookie.job.raft.election.ElectionProcess;
 import org.rookie.job.raft.enums.NodeState;
 import org.rookie.job.raft.util.TimeoutUtil;
@@ -27,9 +25,7 @@ public class RaftBootstrap {
 	private static volatile long startTime = -1;
 	
 	private static volatile boolean running = false; 
-	
-	private static int fortest = 1;
-	
+		
 	/**
 	 * 外部调用的初始化方法
 	 */
@@ -39,16 +35,19 @@ public class RaftBootstrap {
 			running = true;
 			//选举启动，选举超时时间后开始进入选举状态
 			System.out.println("选举启动，选举超时时间后开始进入选举状态: " + ElectionProcess.electionTimeout + " ms 后开始调度");
-//			timer.schedule(new RaftBootstrap(), ElectionProcess.electionTimeout);
 			startTime = System.currentTimeMillis();
 			start();
 		}
 	}
 
 	private static void start() {
+		//一个节点，单机模式
+		if (ElectionProcess.NODELIST.size() == 1) {
+			ElectionProcess.followerToLeader();
+			return;
+		}
 		while (true && running) {
-			if (System.currentTimeMillis() - startTime > ElectionProcess.electionTimeout 
-					|| (fortest == 1 && ElectionProcess.localnode.getPort() == 10086)) {
+			if (System.currentTimeMillis() - startTime > ElectionProcess.electionTimeout) {
 				if (ElectionProcess.STATE.getState() == NodeState.FOLLOWER.getState()) {
 					//1.在follower状态超时，进入到candidate状态
 					System.out.println(ElectionProcess.localnode.getPort()+ " 在follower状态超时，进入到candidate状态");
@@ -60,7 +59,6 @@ public class RaftBootstrap {
 				}
 				//一次循环后，不管当前节点为什么状态，都进入下一个周期
 				startTime = System.currentTimeMillis();
-				fortest++;
 			} else {
 				try {
 					Thread.sleep(200);

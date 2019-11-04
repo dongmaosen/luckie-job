@@ -1,5 +1,8 @@
 package org.rookie.job.common;
 
+import org.rookie.job.rpc.client.RPCClient;
+import org.rookie.job.rpc.server.RpcBootStrap;
+
 /**
  *
  *
@@ -12,8 +15,14 @@ public class ShutdownHook implements Runnable {
 
 	@Override
 	public void run() {
-		//TODO 清理系统资源
 		//1.清理连接资源RPCClient
+		try {
+			RPCClient.shutdownAll();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		//2.关闭服务端
+		RpcBootStrap.shutdown();
 	}
 
 }
