@@ -1,5 +1,7 @@
 package org.rookie.job;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.rookie.job.cfg.LuckieConfig;
 import org.rookie.job.raft.RaftBootstrap;
 import org.rookie.job.rpc.server.RpcBootStrap;
@@ -46,6 +48,15 @@ public class BootStrap {
 			}
 		}).start();
 		//2.初始化本地选举流程
-		RaftBootstrap.init();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {				
+				try {
+					RaftBootstrap.init();
+				} catch (Exception e) {
+					
+				}
+			}
+		}).start();
 	}
 }

@@ -5,8 +5,6 @@ import org.rookie.job.rpc.proto.LuckieProto.Luckie;
 import org.rookie.job.rpc.proto.LuckieProto.Luckie.Builder;
 import org.rookie.job.rpc.proto.LuckieProto.Luckie.Event;
 
-import io.netty.util.ReferenceCountUtil;
-
 import java.util.Map;
 
 import org.rookie.job.raft.election.ElectionProcess;
@@ -26,23 +24,22 @@ public class HeartBeatHandler implements IMessageHandler {
 	public Luckie handleServer(Luckie request) {
 		//处理连接请求发过来的心跳
 		Map<String, String> data = request.getDataMap();
-		ElectionProcess.processHearbeat(data);
+		ElectionProcess.processReceiverHearbeat(data);
 		//返回
 		Builder builder = LuckieProto.Luckie.newBuilder();	
 		builder.putData("state", ElectionProcess.STATE.getState() + "");
 		builder.putData("term", ElectionProcess.term + "");
 		builder.putData("source_ip", ElectionProcess.localnode.getIp());
 		builder.putData("source_port", ElectionProcess.localnode.getPort() + "");
+		builder.putData("type", data.get("type"));
 		Luckie lk = builder.setEvent(Event.HEART_BEAT).build();
-		//TODO
-		System.out.println(ElectionProcess.getElectionData());
+//		System.out.println(ElectionProcess.getElectionData());
 		return lk;
 	}
 
 	@Override
 	public void handleClient(Luckie response) {
-		System.out.println(ElectionProcess.getElectionData());
-		ReferenceCountUtil.release(response);
+		ElectionProcess.proccessSenderReceiverHeartbeat(response);
 	}
 
 }

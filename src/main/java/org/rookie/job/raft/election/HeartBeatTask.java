@@ -19,16 +19,20 @@ public class HeartBeatTask implements Runnable {
 	private NodeInfo node;
 
 	private int term;
+	
+	private int type;
 
 	/**
 	 * 构造
 	 * 
 	 * @param nodeInfo
 	 * @param term
+	 * @param i 
 	 */
-	public HeartBeatTask(NodeInfo node, int term) {
+	public HeartBeatTask(NodeInfo node, int term, int type) {
 		 this.node = node;
 		 this.term = term;
+		 this.type = type;
 	}
 
 	@Override
@@ -48,12 +52,16 @@ public class HeartBeatTask implements Runnable {
 					data.put("term", term + "");
 					data.put("source_ip", ElectionProcess.localnode.getIp());
 					data.put("source_port", ElectionProcess.localnode.getPort() + "");
+					data.put("type", type + "");
 					rpc.commonCall(event, data);
 					//此处仅发送一次，在连接中不断发送
-					break;
+					if (type == 1) {						
+						break;
+					}
 				}
+				Thread.sleep(5000);
 			} catch (Exception e) {
-				System.out.println("发生异常：心跳连接异常 to " + node.getIp() + ":" + node.getPort());
+//				System.out.println("发生异常：心跳连接异常 to " + node.getIp() + ":" + node.getPort());
 				try {
 					Thread.sleep(5000);
 				} catch (InterruptedException e1) {

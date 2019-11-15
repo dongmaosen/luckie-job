@@ -14,6 +14,7 @@ import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
+import org.rookie.job.raft.election.ElectionProcess;
 import org.rookie.job.raft.election.NodeInfo;
 
 /**
@@ -55,7 +56,7 @@ public class LuckyJobManager {
 		return triggerBuilder;
 	}
 	/**
-	 *   将job加入到任务列表中
+	 *   将job加入到任务列表中(所有的任务)
 	 */
 	public static void addJob(LuckyQuartzJob job) {
 		taskList.add(job);
@@ -68,32 +69,58 @@ public class LuckyJobManager {
 		exec.submit(new Runnable() {
 			@Override
 			public void run() {
-				//0.获取节点阻塞循环
-				List<NodeInfo> nodes = getNodes();
-				//1.进入调度，根据当前节点动态分配任务
-				
-				try {
-					if (!getScheduler().isShutdown()) {				
-						getScheduler().start();
-					}
-				} catch (SchedulerException e) {}
+				arrangeTasks();
 			}
 		});
 	}
 	/**
-	 * 
-	 * @return
+	 * 节点变更时重新
 	 */
-	protected static List<NodeInfo> getNodes() {
-		// TODO Auto-generated method stub
-		return null;
+	public static void reArrangeTask() {
+		exec.submit(new Runnable() {
+			@Override
+			public void run() {
+				clearAllTasks();
+				arrangeTasks();
+			}
+		});
 	}
+	
+	/**
+	 * 平均分配任务
+	 */
+	private static void arrangeTasks() {
+		//0.获取节点阻塞循环
+		List<NodeInfo> nodes = ElectionProcess.getClusterNodes();
+		//1.进入调度，根据当前节点动态分配任务
+		int index = -1;
+		for (int i = 0; i < nodes.size(); i++) {
+			if (ElectionProcess.localnode.equals(nodes.get(i))) {
+				index = i;
+				break;
+			}
+		}
+		try {
+			for (int j = 0; j < taskList.size(); j++) {
+				if (j % nodes.size() == index) {
+					try {
+						addTask(taskList.get(j));
+					} catch (SchedulerException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			if (!getScheduler().isShutdown()) {				
+				getScheduler().start();
+			}
+		} catch (SchedulerException e) {}
+	}
+
 	private static void addTask(LuckyQuartzJob job) throws SchedulerException{
-		JobDetail jobDetail = JobBuilder.newJob(LuckyQuartzJob.class).withIdentity(job.getName(), JOB_GROUP_NAME).build();
-		getTriggerBuilder().withIdentity(job.getName() + "-trigger", TRIGGER_GROUP_NAME);
-		getTriggerBuilder().startNow();
-		getTriggerBuilder().withSchedule(CronScheduleBuilder.cronSchedule(job.getCron()));
-		CronTrigger trigger = (CronTrigger) getTriggerBuilder().build();
+		JobDetail jobDetail = JobBuilder.newJob(job.getClass()).withIdentity(job.getName(), JOB_GROUP_NAME).build();
+		CronTrigger trigger = (CronTrigger)getTriggerBuilder().withIdentity(job.getName() + "-trigger", TRIGGER_GROUP_NAME)
+		                   .withSchedule(CronScheduleBuilder.cronSchedule(job.getCron()))
+		                   .build();
 		getScheduler().scheduleJob(jobDetail, trigger);
 	}
 

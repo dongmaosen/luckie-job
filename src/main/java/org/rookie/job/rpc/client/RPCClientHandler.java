@@ -5,15 +5,11 @@ import java.net.InetSocketAddress;
 import org.rookie.job.raft.election.ElectionProcess;
 import org.rookie.job.raft.enums.NodeState;
 import org.rookie.job.rpc.message.MessageHandlerFactory;
-import org.rookie.job.rpc.proto.LuckieProto;
 import org.rookie.job.rpc.proto.LuckieProto.Luckie;
-import org.rookie.job.rpc.proto.LuckieProto.Luckie.Builder;
-import org.rookie.job.rpc.proto.LuckieProto.Luckie.Event;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.timeout.IdleStateEvent;
 
 /**
  *
@@ -55,12 +51,13 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Luckie> {
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		System.out.println("RPCClientHandler exceptionCaught");
+		System.out.println("RPCClientHandler exceptionCaught start " + ip + ":" + port);
 		if (channel != null) {
 			channel.close();
 		}
 		ctx.close();
 		ctx.fireExceptionCaught(cause);
+		System.out.println("RPCClientHandler exceptionCaught end   " + ip + ":" + port);
 	}
 	
 	@Override
@@ -70,29 +67,10 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Luckie> {
 		if (ElectionProcess.STATE.getState() == NodeState.LEADER.getState()) {
 			//当前节点为leader，与follower断开
 			ElectionProcess.processFollowerDisconnectByLeaderClient(ip, port);
+			ElectionProcess.nodeChanged();
 		} else {
 			//其他状态，自动进入处理的循环，暂时不处理
 		}
-	}
-	
-	@Override
-	public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-		if (evt instanceof IdleStateEvent) {
-			//发送心跳包
-			sendHeartbeatPacket(ctx);
-		}
-	}
-	
-	private void sendHeartbeatPacket(ChannelHandlerContext ctx) {
-		Builder luckieBuilder = LuckieProto.Luckie.newBuilder();
-		Event event = Event.HEART_BEAT;
-		luckieBuilder.putData("sub_event", "1");
-		luckieBuilder.putData("state", ElectionProcess.STATE.getState() + "");
-		luckieBuilder.putData("term", ElectionProcess.term + "");
-		luckieBuilder.putData("source_ip", ElectionProcess.localnode.getIp());
-		luckieBuilder.putData("source_port", ElectionProcess.localnode.getPort() + "");
-		LuckieProto.Luckie luckie = luckieBuilder.setEvent(event).build();
-		ctx.writeAndFlush(luckie);
 	}
 
 }
