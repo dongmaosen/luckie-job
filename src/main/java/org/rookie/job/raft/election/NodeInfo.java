@@ -7,7 +7,7 @@ package org.rookie.job.raft.election;
  * Copyright @ 2019
  * 
  */
-public class NodeInfo {
+public class NodeInfo implements Comparable<NodeInfo> {
 	
 	/**
 	 * IP地址
@@ -82,5 +82,9 @@ public class NodeInfo {
 	@Override
 	public String toString() {
 		return ip + ":" + port;
+	}
+	@Override
+	public int compareTo(NodeInfo o) {
+		return o == null ? -1 :(ip + port).compareTo(o.getIp() + o.getPort());
 	}
 }

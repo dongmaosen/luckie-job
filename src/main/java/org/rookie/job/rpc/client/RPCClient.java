@@ -1,10 +1,17 @@
 package org.rookie.job.rpc.client;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.commons.lang.StringUtils;
+import org.rookie.job.raft.election.NodeInfo;
 import org.rookie.job.rpc.proto.LuckieProto;
+import org.rookie.job.rpc.proto.LuckieProto.Luckie;
 import org.rookie.job.rpc.proto.LuckieProto.Luckie.Builder;
 import org.rookie.job.rpc.proto.LuckieProto.Luckie.Event;
 
@@ -105,5 +112,48 @@ public class RPCClient {
     		connectionMap.get(keys.next()).close();
     	}
     }
+
+    private BlockingQueue<Luckie> answer = new LinkedBlockingQueue<Luckie>();
+    
+	public List<NodeInfo> getVoteNodes() {
+		List<NodeInfo> list = new ArrayList<NodeInfo>();
+		try {
+			//1.连接
+			connect();
+			//2.请求数据
+			Event event = Event.REPLICATION;
+			Map<String, String> data = new HashMap<String, String>(8);
+			data.put("sub_event", "getVoteNodes");
+			commonCall(event, data);
+			//3.等待请求结果
+			Luckie luckie = null;
+			for (;;) {
+				luckie = answer.take();
+				break;
+			}
+			//4.结果解析&封装
+			String nodeString = luckie.getDataMap().get("nodes");
+			System.out.println("cluster node string " + nodeString);
+			if (StringUtils.isNotBlank(nodeString)) {
+				String[] nodes = nodeString.split(";");
+				for (String node : nodes) {
+					if (StringUtils.isNotBlank(node)) {
+						NodeInfo n = new NodeInfo();
+						String[] singleNode = node.split(":");
+						n.setIp(singleNode[0]);
+						n.setPort(Integer.parseInt(singleNode[1]));
+						list.add(n);
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("RPCClient getVoteNodes : " + e.getMessage());
+		}
+		return list;
+	}
+	
+	public void addMessage(Luckie luckie) {
+		answer.add(luckie);
+	}
 
 }

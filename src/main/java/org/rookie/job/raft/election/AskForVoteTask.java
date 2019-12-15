@@ -45,7 +45,7 @@ public class AskForVoteTask implements Runnable {
 				} 
 				break;
 			} catch (Exception e) {
-				System.err.println(Thread.currentThread().getName() + " term " + term + ", connect to " + node.getPort() + " error : " + e.getMessage());
+//				System.err.println(Thread.currentThread().getName() + " term " + term + ", connect to " + node.getPort() + " error : " + e.getMessage());
 				try {
 					Thread.sleep(5000);
 				} catch (InterruptedException e1) {
